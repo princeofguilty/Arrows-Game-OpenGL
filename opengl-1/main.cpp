@@ -6,202 +6,78 @@
 
 using namespace std;
 
-void OnDisplay();
-void SetTransformations();
+void changeSize(int w, int h) {
 
-GLfloat fXPos = 0, fYPos = 0, fRot = 0;
+	// Prevent a divide by zero, when window is too short
+	// (you cant make a window of zero width).
+	if (h == 0)
+		h = 1;
+	float ratio = 1 * w / h;
 
-void OnKeyPress(unsigned char key, int x, int y)
-{
-	if (key == 27)
-		exit(0);
-	switch (key)
-	{
-	case 'a':// a key
-	case 'A':
-		fXPos -= 0.5;
-		break;
-	case 'd':// d key
-	case 'D':
-		fXPos += 0.5;
-		break;
-	case 'w':// w key
-	case 'W':
-		fYPos += 0.5;
-		break;
-	case 's':// s key
-	case 'S':
-		fYPos -= 0.5;
-		break;
-	case 'e':
-	case 'E':
-		fRot += 0.1;
-		break;
-	case 'q':
-	case 'Q':
-		fRot -= 0.1;
-		break;
-	};
-}
-/**
-Handles the special key press. This event is whenever
-a special key is being pressed. */
-void OnSpecialKeyPress(int key, int x, int y)
-{
-	switch (key)
-	{
-	case GLUT_KEY_LEFT:// Left function key
-		fXPos -= 0.5;
-		break;
-	case GLUT_KEY_RIGHT:// Right function key
-		fXPos += 0.5;
-		break;
-	case GLUT_KEY_UP:// Up function key
-		fYPos += 0.5;
-		break;
-	case GLUT_KEY_DOWN:// Down function key
-		fYPos -= 0.5;
-		break;
-	};
+	// Use the Projection Matrix
+	glMatrixMode(GL_PROJECTION);
+
+	// Reset Matrix
+	glLoadIdentity();
+
+	// Set the viewport to be the entire window
+	glViewport(0, 0, w, h);
+
+	// Set the correct perspective.
+	gluPerspective(45, ratio, 1, 1000);
+
+	// Get Back to the Modelview
+	glMatrixMode(GL_MODELVIEW);
 }
 
 
 void InitGraphics(int argc, char* argv[]) {
+	// init GLUT and create Window
 	glutInit(&argc, argv);
-	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA);
-	//Create an 800x600 window with its top-left corner at pixel (100, 100)
-	glutInitWindowPosition(100, 100); //pass (-1, -1) for Window-Manager defaults
-	glutInitWindowSize(800, 600);
-	glutCreateWindow("OpenGL Lab");
-	//OnDisplay will handle the paint event
-	glutDisplayFunc(OnDisplay);
-	// here is the setting of the idle function
-	glutIdleFunc(OnDisplay);
-	// here is the setting of the key function
-	glutKeyboardFunc(OnKeyPress);
-	glutSpecialFunc(OnSpecialKeyPress);
-	SetTransformations();
-	glutMainLoop();
-}
-/**
-Sets the logical coordinate system we will use to specify
-our drawings.
-*/
-void SetTransformations()
-{
-	//set up the logical coordinate system of the window: [-100, 100] x[-100, 100]
-		glMatrixMode(GL_PROJECTION);
-	glLoadIdentity();
-	gluPerspective(60,
-		(double)800 / 600,
-		0.01,
-		400);
-	glEnable(GL_DEPTH_TEST);
-	// set the camera here
-
-}
-/**
-Handles the paint event. This event is triggered whenever
-our displayed graphics are lost or out-of-date.
-ALL rendering code should be written here.
-*/
-
-void DrawSquare()
-{
-	glBegin(GL_QUADS);
-	glVertex2f(-.5f, -.5f);
-	glVertex2f(.5f, -.5f);
-	glVertex2f(.5f, .5f);
-	glVertex2f(-.5f, .5f);
-	glEnd();
+	glutInitDisplayMode(GLUT_DEPTH | GLUT_DOUBLE | GLUT_RGBA);
+	glutInitWindowPosition(100, 100);
+	glutInitWindowSize(320, 320);
+	glutCreateWindow("Lighthouse3D- GLUT Tutorial");
 }
 
-void DrawCube()
-{
-	//+z square
-	glPushMatrix();
-	{
-		glColor3f(1, 0, 0);
-		glTranslatef(0, 0, .5f);
-		DrawSquare();
-	}
-	glPopMatrix();
-	//-z square
-	glPushMatrix();
-	{
-		glColor3f(0, 1, 0);
-		glTranslatef(0, 0, -.5f);
-		DrawSquare();
-	}
-	glPopMatrix();
-	//+x square
-	glPushMatrix();
-	{
-		glColor3f(1, .5f, 0);
-		glTranslatef(.5f, 0, 0);
-		glRotatef(90, 0, 1, 0);
-		DrawSquare();
-	}
-	glPopMatrix();
-	//-x square
-	glPushMatrix();
-	{
-		glColor3f(0, 1, .5f);
-		glTranslatef(-.5f, 0, 0);
-		glRotatef(90, 0, 1, 0);
-		DrawSquare();
-	}
-	glPopMatrix();
-	//+y square
-	glPushMatrix();
-	{
-		glColor3f(.5f, 0, 1);
-		glTranslatef(0, .5f, 0);
-		glRotatef(90, 1, 0, 0);
-		DrawSquare();
-	}
-	glPopMatrix();
-	//-y square
-	glPushMatrix();
-	{
-		glColor3f(1, 0, .5f);
-		glTranslatef(0, -.5f, 0);
-		glRotatef(90, 1, 0, 0);
-		DrawSquare();
-	}
-	glPopMatrix();
-}
-void OnDisplay() 
-{
+float angle = 0.0f;
 
-	//set the background color to white
-	glClearColor(0, 0, 0, 1);
-	//fill the whole color buffer with the clear color
+
+void renderScene(void) {
+
+	// Clear Color and Depth Buffers
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	glPushMatrix();
-	{
-		glScalef(7, 7, 7);
-	// Inside OnPaint
-	glRotatef(fRot, fXPos, fYPos, 0);
-	DrawCube();
-	//glutWireTeapot(2);//size = 2
-	}
 
-	glMatrixMode(GL_MODELVIEW);
+	// Reset transformations
 	glLoadIdentity();
-	gluLookAt(
-		//cam pos
-		0, 0, 40,
-		//looking at
-		0, 0, 0,
-		//up dir
-		0, 1, 0);
+	// Set the camera
+	gluLookAt(0.0f, 0.0f, 10.0f,
+		0.0f, 0.0f, 0.0f,
+		0.0f, 1.0f, 0.0f);
 
-	glPopMatrix();
+	glRotatef(angle, 0.0f, 1.0f, 0.0f);
+
+	glBegin(GL_TRIANGLES);
+	glVertex3f(-2.0f, -2.0f, 0.0f);
+	glVertex3f(2.0f, 0.0f, 0.0);
+	glVertex3f(0.0f, 2.0f, 0.0);
+	glEnd();
+
+	angle += 0.1f;
+
 	glutSwapBuffers();
 }
 
+
 int main(int argc, char* argv[]) {
 	InitGraphics(argc, argv);
-	return 0;
+	glutDisplayFunc(renderScene);
+
+	glutReshapeFunc(changeSize);
+	glutIdleFunc(renderScene);
+
+
+	// enter GLUT event processing cycle
+	glutMainLoop();
+	return 1;
 }
