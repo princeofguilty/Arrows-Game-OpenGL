@@ -3,6 +3,7 @@
 #include <GL\freeglut.h>
 #include <iostream>
 #include "Engine.h"
+#include <stdio.h>
 
 //#define DOUBLE_BUFFER
 #define SINGLE_BUFFER
@@ -10,14 +11,15 @@
 arrowCircle* ac = NULL;
 
 bool* onMouse;
-int s_angle=0;
+int s_angle = 0;
+bool EXIT = false;
 
 float position = 0;
 
 struct arrows_exist
 {
-	arrowCircle* arr[20];
-	int counter=0;
+	arrowCircle* arr[40];
+	int counter = 0;
 	void add(arrowCircle* a) {
 		arr[counter++] = a;
 	}
@@ -31,7 +33,29 @@ struct arrows_exist
 	arrowCircle pop() {
 		return ac[counter];
 	}
+
+	void check() {
+		for (int i = 0; i < counter; i++)
+		{
+			for (int j = i + 1; j < counter; j++)
+			{
+				if (abs(arr[i]->angle - arr[j]->angle) < 10) {
+					printf("SCORE = %d\n", counter - 1);
+					EXIT = true;
+				}
+			}
+		}
+	}
 }ArrowsExist;
+
+void RenderString(float x, float y, void* font, const unsigned char* str)
+{
+	//char* c;
+
+	glRasterPos2f(x, y);
+
+	glutBitmapString(font, str);
+}
 
 void DrawCircle(float cx, float cy, float r, int num_segments) {
 	//GL_LINE_LOOP for unfilled circle
@@ -48,6 +72,7 @@ void DrawCircle(float cx, float cy, float r, int num_segments) {
 
 void timer(int) {
 	glutPostRedisplay();
+	//if(!EXIT)
 	glutTimerFunc(1000 / 60, timer, 0);
 	if (position <= 18)
 		position += 0.15;
@@ -68,6 +93,7 @@ void display() {
 	glLoadIdentity();
 	glLineWidth((GLfloat)3.0);
 
+
 	glRotatef(s_angle++, 0, 0, 1);
 
 	s_angle = s_angle % 360;
@@ -76,21 +102,32 @@ void display() {
 	glShadeModel(GL_SMOOTH);
 	DrawCircle(0, 0, 3, 100);
 	ArrowsExist.run();
-	
-	glColor3f(0.1, 0.1, 0.1);
+
+	glColor3f(0., 0., 0.);
 	//glRotatef(-angle, 0, 0, 1);
-	
-	ac->draw(s_angle);
-	ac->go(3, s_angle);
-	if (ac->DONE == true) {
-		ArrowsExist.add(ac);
-		ac = new arrowCircle();
-		//ac->angle_i = ArrowsExist.pop().angle_i;
-		
+	if (!EXIT) {
+		ac->draw(s_angle);
+		ac->go(3, s_angle);
+		if (ac->DONE == true) {
+			ArrowsExist.add(ac);
+			ac = new arrowCircle();
+		}
 	}
-	
+	if (!EXIT) 
+		ArrowsExist.check();
+	else
+		ArrowsExist.counter--;
+
+	if (EXIT && ArrowsExist.counter == 0) {
+		EXIT = false;
+	}
 
 	onMouse = &ac->Launch;
+	glColor3f(1, 1, 1);
+	char a[10];
+	sprintf(a, "%d", ArrowsExist.counter);
+	RenderString(-1.0f, 0.03f, GLUT_BITMAP_TIMES_ROMAN_24, (const unsigned char*)a);
+	glColor3f(0., 0., 0.);
 
 #ifdef DOUBLE_BUFFER
 	glutSwapBuffers();
@@ -98,6 +135,8 @@ void display() {
 	glFlush();
 #endif
 
+	//if (EXIT)
+	//	exit(0);
 
 
 }
