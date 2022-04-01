@@ -10,7 +10,7 @@
 arrowCircle* ac = NULL;
 
 bool* onMouse;
-int angle=0;
+int s_angle=0;
 
 float position = 0;
 
@@ -24,8 +24,8 @@ struct arrows_exist
 	void run() {
 		for (int i = 0; i < counter; i++)
 		{
-			arr[i]->draw();
-			arr[i]->go(3);
+			arr[i]->draw(s_angle);
+			arr[i]->go(3, s_angle);
 		}
 	}
 	arrowCircle pop() {
@@ -65,28 +65,30 @@ void init() {
 
 void display() {
 	glClear(GL_COLOR_BUFFER_BIT);
-	//glLoadIdentity();
+	glLoadIdentity();
 	glLineWidth((GLfloat)3.0);
 
-	glRotatef(1, 0, 0, 1);
-	angle = angle % 360;
+	glRotatef(s_angle++, 0, 0, 1);
+
+	s_angle = s_angle % 360;
 	glColor3f(0.1, 0.1, 0.1);
 
 	glShadeModel(GL_SMOOTH);
 	DrawCircle(0, 0, 3, 100);
-	
+	ArrowsExist.run();
 	
 	glColor3f(0.1, 0.1, 0.1);
-	ac->draw();
-	ac->go(3);
+	//glRotatef(-angle, 0, 0, 1);
+	
+	ac->draw(s_angle);
+	ac->go(3, s_angle);
 	if (ac->DONE == true) {
 		ArrowsExist.add(ac);
 		ac = new arrowCircle();
-		ac->angle_i = ArrowsExist.pop().angle_i;
+		//ac->angle_i = ArrowsExist.pop().angle_i;
 		
 	}
-
-	ArrowsExist.run();
+	
 
 	onMouse = &ac->Launch;
 

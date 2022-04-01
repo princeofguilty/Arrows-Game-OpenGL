@@ -7,16 +7,19 @@
 void DrawCircle(float cx, float cy, float r, int num_segments);
 
 arrowCircle::arrowCircle() {
-	draw();
+	//draw(0);
 	posx = 0, radius = 0.6, posy = -19 + radius,
-		speed = 0.1, angle_i=0, angle_r=0;
+		speed = 0.1;
 	Launch = false;
 	DONE = false;
 }
 
 
-void arrowCircle::draw() {
-	glRotatef(-angle_i, 0, 0, 1);
+void arrowCircle::draw(int c_angle) {
+	if(speed != -1) // freeze position
+		glRotatef(-angle, 0, 0, 1);
+	else
+		glRotatef(-angle, 0, 0, 1);
 
 	DrawCircle(posx, posy, radius, 50);
 	// draw its arrow
@@ -27,14 +30,15 @@ void arrowCircle::draw() {
 		glEnd();
 	}
 
-	glRotatef(speed == -1 ? angle_r : angle_i, 0, 0, 1);
+	if (speed != -1) // freeze position
+		glRotatef(+angle, 0, 0, 1);
 }
-void arrowCircle::go(float main_circle_radius) {
+void arrowCircle::go(float main_circle_radius, int c_angle) {
 	if (posy < 0 - main_circle_radius - 5 && DONE == false) {
 		posx = 0;
 		if(Launch)
 			posy += speed;
-		angle_i = ++angle_i % 360;
+		angle = c_angle;
 	}
 	else {
 		if (Launch) {
@@ -42,6 +46,6 @@ void arrowCircle::go(float main_circle_radius) {
 			DONE = true;
 			speed = -1;
 		}
-		angle_r = ++angle_r % 360;
+		angle++;
 	}
 }

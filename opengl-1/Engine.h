@@ -10,9 +10,9 @@ class arrowCircle {
 public:
 	arrowCircle();
 	float posx, radius, posy, speed;
-	int angle_i, angle_r;
-	void go(float main_circle_radius);
-	void draw();
+	int angle;
+	void go(float main_circle_radius, int c_angle);
+	void draw(int c_angle);
 	bool Launch, DONE;
 };
 
